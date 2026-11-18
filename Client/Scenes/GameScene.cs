@@ -17,7 +17,6 @@ using MirDB;
 using C = Library.Network.ClientPackets;
 using UserObject = Client.Models.UserObject;
 //using System.ComponentModel;
-using System.Runtime.Remoting.Messaging;
 using Library.Network.ClientPackets;
 using Library.Network;
 using Client.Properties;

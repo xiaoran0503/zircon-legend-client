@@ -8,7 +8,6 @@ using Client.Envir;
 using Client.Models;
 using Client.UserModels;
 using Library;
-using static System.Net.Mime.MediaTypeNames;
 using C = Library.Network.ClientPackets;
 using System.Data;
 

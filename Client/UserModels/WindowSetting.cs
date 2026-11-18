@@ -153,5 +153,6 @@ namespace Client.UserModels
         ItemAmountBox,
         InputWindow,
         BigPatchWindow,
+        AssistDialog,
     }
 }

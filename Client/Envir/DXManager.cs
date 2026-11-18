@@ -450,15 +450,15 @@ namespace Client.Envir
             {
                 Result result = Device.TestCooperativeLevel();
 
-                if (result.Code == ResultCode.DeviceLost.Code) return;
+                if (result.Code == ResultCode.DeviceLost) return;
 
-                if (result.Code == ResultCode.DeviceNotReset.Code)
+                if (result.Code == ResultCode.DeviceNotReset)
                 {
                     ResetDevice();
                     return;
                 }
 
-                if (result.Code != ResultCode.Success.Code) return;
+                if (result.Code != ResultCode.Success) return;
 
                 DeviceLost = false;
             }
