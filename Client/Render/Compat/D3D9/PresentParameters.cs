@@ -26,12 +26,22 @@ namespace SlimDX.Direct3D9
 
     public sealed class AdapterInformation
     {
-        public Adapter Adapter { get; } = new Adapter();
+        public Adapter Adapter { get; }
+
+        public AdapterInformation()
+        {
+            Adapter = new Adapter(this);
+        }
     }
 
     public sealed class Adapter
     {
-        public AdapterInformation Information { get; } = new AdapterInformation();
+        public AdapterInformation Information { get; }
+
+        public Adapter(AdapterInformation information)
+        {
+            Information = information;
+        }
     }
 
     public sealed class AdapterCollection
