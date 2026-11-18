@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using SlimDX.Direct3D9;
@@ -51,37 +52,35 @@ namespace Client.Render
         {
             renderer = string.IsNullOrWhiteSpace(renderer) ? DefaultRenderer : renderer.Trim();
 
-            // 1) 请求的后端
+            // 回退候选顺序：请求后端 → DX12 硬件 → DX12 WARP。
+            // 构造与 Init 任一阶段抛异常都纳入回退（Init 失败不再泄漏到调用方）。
+            var candidates = new List<Func<IRenderBackend>>();
             if (string.Equals(renderer, "Vulkan", StringComparison.OrdinalIgnoreCase))
+                candidates.Add(() => new Vulkan.VulkanBackend());
+            if (string.Equals(renderer, "WARP", StringComparison.OrdinalIgnoreCase))
+                candidates.Add(() => new D3D12.D3D12Backend(useWarp: true));
+            candidates.Add(() => new D3D12.D3D12Backend(useWarp: false));
+            candidates.Add(() => new D3D12.D3D12Backend(useWarp: true));
+
+            IRenderBackend last = null;
+            foreach (var build in candidates)
             {
+                IRenderBackend backend = null;
                 try
                 {
-                    return new Vulkan.VulkanBackend();
+                    backend = build();
+                    backend.Init(hwnd, width, height, windowed, vsync);
+                    return backend;
                 }
                 catch (Exception ex) when (ex is not Direct3D9Exception)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Vulkan 初始化失败，回退 DX12：{ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"渲染后端初始化失败，尝试下一候选：{ex.Message}");
+                    backend?.Dispose();
+                    last = backend;
                 }
             }
 
-            // 1b) 显式 WARP 软件后端（自检/无头回退）
-            if (string.Equals(renderer, "WARP", StringComparison.OrdinalIgnoreCase))
-            {
-                return new D3D12.D3D12Backend(useWarp: true);
-            }
-
-            // 2) DX12 硬件设备
-            try
-            {
-                return new D3D12.D3D12Backend(useWarp: false);
-            }
-            catch (Exception ex) when (ex is not Direct3D9Exception)
-            {
-                System.Diagnostics.Debug.WriteLine($"DX12 硬件设备初始化失败，回退 WARP：{ex.Message}");
-            }
-
-            // 3) DX12 WARP 软件回退
-            return new D3D12.D3D12Backend(useWarp: true);
+            throw new Direct3D9Exception("无可用渲染后端（Vulkan/DX12 硬件/WARP 均初始化失败）。");
         }
     }
 }

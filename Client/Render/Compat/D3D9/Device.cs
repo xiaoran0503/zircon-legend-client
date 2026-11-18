@@ -20,11 +20,9 @@ namespace SlimDX.Direct3D9
             Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
 
             string renderer = BackendFactory.ReadRequestedRenderer();
+            // 工厂内部完成构造 + Init，并在任一候选失败时按顺序回退。
             Backend = BackendFactory.Create(renderer, windowHandle,
                 parameters.BackBufferWidth, parameters.BackBufferHeight,
-                parameters.Windowed, parameters.PresentationInterval != PresentInterval.Immediate);
-
-            Backend.Init(windowHandle, parameters.BackBufferWidth, parameters.BackBufferHeight,
                 parameters.Windowed, parameters.PresentationInterval != PresentInterval.Immediate);
         }
 

@@ -25,8 +25,8 @@ namespace Client.Render.D3D12
     /// </summary>
     public sealed class D3D12Backend : IRenderBackend
     {
-        private const int SrvHeapSize = 256;
-        private const int RtvHeapSize = 64;
+        private const int SrvHeapSize = 1024;
+        private const int RtvHeapSize = 256;
 
         private readonly bool _useWarp;
         public BackendKind Kind => _useWarp ? BackendKind.Warp : BackendKind.D3D12;
@@ -45,7 +45,7 @@ namespace Client.Render.D3D12
         private ID3D12PipelineState _pso;
         private ID3D12Resource _renderTarget;
         private CpuDescriptorHandle _rtvHandle;
-        private int _rtvSlot;
+        private int _rtvSlot = 1; // 槽 0 预留给主后备缓冲，控制 RT 从 1 起分配
         private int _width;
         private int _height;
         private ResourceStates _rtState = ResourceStates.Common;
@@ -53,9 +53,10 @@ namespace Client.Render.D3D12
         private int _srvInc;
         private int _rtvInc;
         private readonly List<D3D12Texture> _textures = new List<D3D12Texture>();
-        private D3D12Surface _currentSurface;
+        private ISurfaceBackend _currentSurface;
         private Color _clearColor = Color.Black;
         private bool _sceneOpen;
+        private bool _listRecording;
         private ID3D12Fence _fence;
         private ManualResetEvent _fenceEvent;
         private ulong _fenceValue;
@@ -196,8 +197,12 @@ namespace Client.Render.D3D12
         public void BeginScene()
         {
             EnsureRenderTarget(_width, _height);
+            // 上一帧若在录制中途抛异常、命令列表未关闭，先排空复位，
+            // 避免 allocator.Reset 被 CommandAllocatorCannotReset 永久卡死。
+            DrainOpenFrame();
             _allocator.Reset();
             _cmd.Reset(_allocator, _pso);
+            _listRecording = true;
 
             _cmd.ResourceBarrier(ResourceBarrier.BarrierTransition(_renderTarget,
                 _rtState, ResourceStates.RenderTarget, 0, ResourceBarrierFlags.None));
@@ -223,6 +228,7 @@ namespace Client.Render.D3D12
                 _rtState, ResourceStates.CopySource, 0, ResourceBarrierFlags.None));
             _rtState = ResourceStates.CopySource;
             _cmd.Close();
+            _listRecording = false;
             _queue.ExecuteCommandLists(new ID3D12CommandList[] { _cmd });
             WaitForGpu();
             foreach (var up in _pendingUploads) up.Dispose();
@@ -267,7 +273,7 @@ namespace Client.Render.D3D12
 
         public void SetRenderTarget(int index, ISurfaceBackend surface)
         {
-            _currentSurface = surface as D3D12Surface;
+            _currentSurface = surface;
         }
 
         public void SetRenderState(RenderState state, int value) { }
@@ -288,8 +294,28 @@ namespace Client.Render.D3D12
 
         private CpuDescriptorHandle _currentRtv()
         {
-            if (_currentSurface?.Texture is D3D12Texture t && t.IsRenderTarget) return t.RtvHandle;
+            // 表面纹理已释放（重建/DisposeTexture）时回退主后备缓冲，禁止绑定失效 RTV。
+            if (_currentSurface?.Texture is D3D12Texture t && t.IsRenderTarget && !t.Disposed) return t.RtvHandle;
             return _rtvHandle;
+        }
+
+        /// <summary>若命令列表仍处于录制态，关闭并排空 GPU，再复位分配器/列表，
+        /// 消除上一帧中途异常导致的 allocator 占用死锁。</summary>
+        private void DrainOpenFrame()
+        {
+            if (!_listRecording) return;
+            try { _cmd.Close(); } catch { /* 列表可能已不可关闭 */ }
+            _listRecording = false;
+            try
+            {
+                _queue.ExecuteCommandLists(new ID3D12CommandList[] { _cmd });
+                WaitForGpu();
+            }
+            catch { /* 排空失败不阻断下一帧尝试 */ }
+            foreach (var up in _pendingUploads) up.Dispose();
+            _pendingUploads.Clear();
+            foreach (var res in _pendingFrameResources) res.Dispose();
+            _pendingFrameResources.Clear();
         }
 
         private void BindRenderTarget() => _cmd.OMSetRenderTargets(_currentRtv(), null);
