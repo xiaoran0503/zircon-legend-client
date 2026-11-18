@@ -585,7 +585,12 @@ namespace Client.Envir
                     CEnvir.BlockList = p.BlockList;
 
                     if (CEnvir.IsQuickGame)
-                        scene.QuickStart();
+                    {
+                        if (scene.SelectBox.CharacterList.Count > 0)
+                            scene.QuickStart();
+                        else if (CEnvir.AutoCreateChar)
+                            scene.QuickCreateCharacter();
+                    }
 
                     if (!string.IsNullOrEmpty(p.Message)) DXMessageBox.Show(p.Message, "登录消息");
                     
@@ -676,7 +681,14 @@ namespace Client.Envir
                     select.SelectBox.UpdateCharacters();
                     select.SelectBox.SelectedButton = select.SelectBox.SelectButtons[select.SelectBox.CharacterList.Count -1];
 
-                    DXMessageBox.Show("角色创建成功.", "创建角色");
+                    if (CEnvir.AutoCreateChar)
+                    {
+                        CEnvir.Enqueue(new C.StartGame { CharacterIndex = p.Character.CharacterIndex });
+                    }
+                    else
+                    {
+                        DXMessageBox.Show("角色创建成功.", "创建角色");
+                    }
                     break;
             }
         }

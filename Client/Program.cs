@@ -102,7 +102,12 @@ namespace Client
                         case "-SelectChar":
                             if (parts.Length < 2 || !int.TryParse(parts[1], out int index)) continue;
                             CEnvir.QuickSelectCharacter = index;
-                            
+
+                            break;
+                        case "-QuickCreateChar":
+                            if (parts.Length < 2) continue;
+                            CEnvir.AutoCreateChar = true;
+                            CEnvir.AutoCharName = parts[1];
                             break;
                         case "-LauncherHash":
                             if (parts.Length < 2) continue;

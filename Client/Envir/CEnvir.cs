@@ -64,6 +64,10 @@ namespace Client.Envir
 
         public static int QuickSelectCharacter { get; set; } = -1;
 
+        /// <summary>程序化冒烟：选角列表为空时自动创建一个角色并直接进入游戏（仅 -QuickCreateChar 开关启用）。</summary>
+        public static bool AutoCreateChar { get; set; } = false;
+        public static string AutoCharName { get; set; }
+
         public static bool Shift, Alt, Ctrl;
         public static DateTime Now;
         public static Point MouseLocation;

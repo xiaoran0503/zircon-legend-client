@@ -133,6 +133,21 @@ namespace Client.Scenes
             });
         }
 
+        /// <summary>程序化冒烟：自动向服务端提交一个新角色（战士/男/发型1），成功后由响应钩子直接进游戏。</summary>
+        public void QuickCreateCharacter()
+        {
+            CEnvir.Enqueue(new C.NewCharacter
+            {
+                CharacterName = CEnvir.AutoCharName,
+                Class = MirClass.Warrior,
+                Gender = MirGender.Male,
+                HairType = 1,
+                HairColour = Color.FromArgb(255, 128, 128, 128),
+                ArmourColour = Color.FromArgb(255, 40, 40, 40),
+                CheckSum = CEnvir.C,
+            });
+        }
+
         #region Methods
 
         public void UpdateCharacterDisplay()
