@@ -292,7 +292,6 @@ namespace Client.Envir
             }
 
             Connection?.Process();
-          //  DXControl.ActiveScene?.Process();
             DXControl.ActiveScene?.Process();
 
             string debugText = $"FPS: {FPSCount}";

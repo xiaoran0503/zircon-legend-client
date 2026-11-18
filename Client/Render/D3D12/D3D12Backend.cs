@@ -152,6 +152,13 @@ namespace Client.Render.D3D12
 
         private void EnsureRenderTarget(int width, int height)
         {
+            // 最小化/尚未布局时 ClientSize 可能为 0：不得据此销毁已有效的渲染目标，
+            // 否则 RTV 描述符会指向已释放资源（调试层 DescriptorHandleWithInvalidResource）。
+            if (width <= 0 || height <= 0)
+            {
+                if (_renderTarget != null) return;
+                width = height = 1;
+            }
             if (_renderTarget != null && _width == width && _height == height) return;
             _renderTarget?.Dispose();
             _width = width;
