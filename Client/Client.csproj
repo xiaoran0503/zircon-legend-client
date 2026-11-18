@@ -40,4 +40,15 @@
     <EmbeddedResource Remove="Properties\Settings.settings" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Render\D3D12\shaders\sprite.vs.dxil">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>shaders\sprite.vs.dxil</TargetPath>
+    </Content>
+    <Content Include="Render\D3D12\shaders\sprite.ps.dxil">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>shaders\sprite.ps.dxil</TargetPath>
+    </Content>
+  </ItemGroup>
+
 </Project>

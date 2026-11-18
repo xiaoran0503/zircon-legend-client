@@ -64,6 +64,12 @@ namespace Client.Render
                 }
             }
 
+            // 1b) 显式 WARP 软件后端（自检/无头回退）
+            if (string.Equals(renderer, "WARP", StringComparison.OrdinalIgnoreCase))
+            {
+                return new D3D12.D3D12Backend(useWarp: true);
+            }
+
             // 2) DX12 硬件设备
             try
             {
