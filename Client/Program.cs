@@ -23,10 +23,16 @@ namespace Client
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // 离屏渲染自检（无窗口）：-SelfTest [png] 硬件 DX12；-SelfTestWarp [png] WARP。
-            if (args.Length > 0 && (args[0] == "-SelfTest" || args[0] == "-SelfTestWarp"))
+            // 离屏渲染自检（无窗口）：-SelfTest [png] 硬件 DX12；-SelfTestWarp [png] WARP；
+            // -SelfTestVulkan [png] 请求 Vulkan，占位/失败时由工厂回退 DX12，验证回退链。
+            if (args.Length > 0 && (args[0] == "-SelfTest" || args[0] == "-SelfTestWarp" || args[0] == "-SelfTestVulkan"))
             {
-                string renderer = args[0] == "-SelfTestWarp" ? "WARP" : "DX12";
+                string renderer = args[0] switch
+                {
+                    "-SelfTestWarp" => "WARP",
+                    "-SelfTestVulkan" => "Vulkan",
+                    _ => "DX12",
+                };
                 string png = args.Length > 1 ? args[1] : "selftest.png";
                 Environment.Exit(Client.Render.D3D12.SelfTest.Run(renderer, png));
             }

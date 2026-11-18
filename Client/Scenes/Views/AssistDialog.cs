@@ -28,7 +28,6 @@ namespace Client.Scenes.Views
 
         //自动捡拾
         private DXTab tabPicker;
-        private DXVScrollBar VScrolPicker;
         private DXCheckBox chkPickerGold;
         private DXCheckBox chkPickerHeal;
         private DXCheckBox chkPickerMana;

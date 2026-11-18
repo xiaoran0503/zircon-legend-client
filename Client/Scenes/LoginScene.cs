@@ -50,7 +50,6 @@ namespace Client.Scenes
 
         #region ConnectionAttempt
 
-        private bool DnsRefreshed = false;
         public int ConnectionAttempt
         {
             get => _ConnectionAttempt;
@@ -105,7 +104,6 @@ namespace Client.Scenes
         public RequestActivationKeyDialog RequestActivationBox;
         public RankingDialog RankingBox;
 
-        private bool QueringDns = false;
         //private IPAddress IpServer = null;
         private bool Logining = false;
 

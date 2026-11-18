@@ -42,7 +42,7 @@ namespace Client.Envir
                     RawData = new byte[wStream.Length];
 
                     wStream.Position = 44;
-                    wStream.Read(RawData, 0, RawData.Length);
+                    wStream.ReadExactly(RawData, 0, RawData.Length);
                 }
                 DXManager.SoundList.Add(this);
             }
